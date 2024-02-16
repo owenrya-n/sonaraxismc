@@ -18,7 +18,7 @@ class Imureader:
     def get_roll(self):
         if self.IMU.dataReady():
             self.IMU.getAgmt()
-            return self.IMU.ayRaw
+            return self.IMU.gyRaw
         else:
             print("Waiting for data")
             return None
@@ -26,14 +26,14 @@ class Imureader:
     def get_pitch(self):
         if self.IMU.dataReady():
             self.IMU.getAgmt()
-            return self.IMU.azRaw
+            return self.IMU.gzRaw
         else:
             print("Waiting for data")
             return None
 
     def zero(self): #really need to fix this scaling
-        self.initial_roll = int(self.get_roll())/1000 if self.IMU.connected else 0
-        self.initial_pitch = int(self.get_pitch())/1000 if self.IMU.connected else 0
+        self.initial_roll = int(self.get_roll()) if self.IMU.connected else 0
+        self.initial_pitch = int(self.get_pitch()) if self.IMU.connected else 0
 
     def get_corrected_roll(self):
         current_roll = self.get_roll()

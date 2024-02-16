@@ -34,8 +34,8 @@ class Controller:
         )
 
     def get_axes(self):
-        roll = self.imu.get_corrected_roll()
-        pitch = self.imu.get_corrected_pitch()
+        roll = self.imu.get_corrected_roll()/131
+        pitch = self.imu.get_corrected_pitch()/131
         print("Roll: " + str(roll) + " degrees, Pitch: " + str(pitch) + " degrees")
         return roll, pitch
 

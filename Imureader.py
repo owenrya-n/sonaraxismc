@@ -8,9 +8,8 @@ import sys
 class Imureader:
     def __init__(self):
         self.IMU = qwiic_icm20948.QwiicIcm20948()
-        if self.IMU.connected == False:
-            print("IMU Connection Failure", \
-                file=sys.stderr)
+        if not self.IMU.connected:
+            print("IMU Connection Failure", file=sys.stderr)
             return
         self.IMU.begin()
         self.zero()
@@ -19,7 +18,7 @@ class Imureader:
     def get_roll(self):
         if self.IMU.dataReady():
             self.IMU.getAgmt()
-            return self.IMU.gxRaw
+            return self.IMU.ayRaw
         else:
             print("Waiting for data")
             return None
@@ -27,14 +26,14 @@ class Imureader:
     def get_pitch(self):
         if self.IMU.dataReady():
             self.IMU.getAgmt()
-            return self.IMU.gyRaw
+            return self.IMU.azRaw
         else:
             print("Waiting for data")
             return None
 
-    def zero(self):
-        self.initial_roll = self.get_roll() if self.IMU.connected else 0
-        self.initial_pitch = self.get_pitch() if self.IMU.connected else 0
+    def zero(self): #really need to fix this scaling
+        self.initial_roll = int(self.get_roll())/1000 if self.IMU.connected else 0
+        self.initial_pitch = int(self.get_pitch())/1000 if self.IMU.connected else 0
 
     def get_corrected_roll(self):
         current_roll = self.get_roll()

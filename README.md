@@ -32,3 +32,12 @@ Required Installs and Dependencies:
 1. https://github.com/sparkfun/Qwiic_9DoF_IMU_ICM20948_Py
 
 2. telnetd
+
+Random info:
+
+- Current Rpi ip set to 169.254.26.196
+    
+- For connecting on PC: https://putty.org/
+
+- Currently need to set scale factors for imu
+

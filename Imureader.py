@@ -1,6 +1,6 @@
+from __future__ import print_function
 import sys
 sys.path.append('/home/axes/Desktop/Qwiic_9DoF_IMU_ICM20948_Py')
-from __future__ import print_function
 import qwiic_icm20948
 import time
 import sys
@@ -14,7 +14,7 @@ class Imureader:
             return
         self.IMU.begin()
         self.zero()
-		print("IMU Connection Success")
+        print("IMU Connection Success")
 
     def get_roll(self):
         if self.IMU.dataReady():

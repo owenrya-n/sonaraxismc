@@ -1,25 +1,37 @@
 import RPi.GPIO as GPIO
 import time
+import socket
 from Stepdriver import Stepdriver
 from Imureader import Imureader
-import socket
+
+
 
 class Controller:
     def __init__(self):
-        self.stepper_roll = Stepdriver(step_pin=11, dir_pin=13, steps_per_revolution=200)
-        self.stepper_pitch = Stepdriver(step_pin=15, dir_pin=16, steps_per_revolution=200)
+        self.stepper_roll = Stepdriver(
+            step_pin=11, dir_pin=13, steps_per_revolution=200
+        )
+        self.stepper_pitch = Stepdriver(
+            step_pin=15, dir_pin=16, steps_per_revolution=200
+        )
         self.imu = Imureader()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind(('169.254.26.196', 23))
+        self.server_socket.bind(("169.254.26.196", 23))
         self.server_socket.listen(1)
-        print("Telnet Connection Successful")
+        #print("Telnet Connection Successful")
 
     def set_axes(self, roll, pitch):
-        d_roll = (roll - self.imu.get_corrected_roll())
-        d_pitch = (pitch - self.imu.get_corrected_pitch())
+        d_roll = roll - self.imu.get_corrected_roll()
+        d_pitch = pitch - self.imu.get_corrected_pitch()
         self.stepper_roll.move_angle(angle=d_roll, direction=GPIO.HIGH, speed=100)
         self.stepper_pitch.move_angle(angle=d_pitch, direction=GPIO.HIGH, speed=100)
-        print("Roll set to " + str(roll) + " degrees, Pitch set to " + str(pitch) + " degrees")
+        print(
+            "Roll set to "
+            + str(roll)
+            + " degrees, Pitch set to "
+            + str(pitch)
+            + " degrees"
+        )
 
     def get_axes(self):
         roll = self.imu.get_corrected_roll()
@@ -32,24 +44,25 @@ class Controller:
         print("IMU angles reset")
 
     def handle_telnet_connection(self, client_socket):
-        client_socket.send("Welcome to the controller server!\n".encode())
+        client_socket.send(b"Welcome to the controller server!\n")
         while True:
-            data = client_socket.recv(1024).decode().strip()
+            data = client_socket.recv(1024)
             if not data:
                 break
-            elif data == "get_axes":
+            data_str = data.decode("utf-8", errors="ignore").strip()  # Decode data as UTF-8
+            if data_str == "get_axes":
                 roll, pitch = self.get_axes()
-                client_socket.send(f"Roll: {roll} degrees, Pitch: {pitch} degrees\n".encode())
-            elif data == "zero":
+                response = f"Roll: {roll} degrees, Pitch: {pitch} degrees\n"
+                client_socket.send(response.encode("utf-8"))
+            elif data_str == "zero":
                 self.zero()
-                client_socket.send("IMU angles reset\n".encode())
-            elif data.startswith("set_axes"):
-                _, roll, pitch = data.split()
+                client_socket.send(b"IMU angles reset\n")
+            elif data_str.startswith("set_axes"):
+                _, roll, pitch = data_str.split()
                 self.set_axes(int(roll), int(pitch))
-                client_socket.send("Axes set successfully\n".encode())
+                client_socket.send(b"Axes set successfully\n")
             else:
-                client_socket.send("Invalid command\n".encode())
-        client_socket.close()
+                client_socket.send(b"Invalid command\n")
 
     def start_telnet_server(self):
         try:
@@ -66,7 +79,7 @@ class Controller:
         GPIO.cleanup()
         print("GPIO cleanup completed")
 
-# Example usage:
+
 if __name__ == "__main__":
     controller = Controller()
     try:

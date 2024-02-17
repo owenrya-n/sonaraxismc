@@ -1,9 +1,9 @@
 import RPi.GPIO as GPIO
 import time
 import socket
+import os  
 from Stepdriver import Stepdriver
-from Imureader import Imureader
-
+from Imureader import Imureader 
 
 
 class Controller:
@@ -18,7 +18,6 @@ class Controller:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(("169.254.26.196", 23))
         self.server_socket.listen(1)
-        #print("Telnet Connection Successful")
 
     def set_axes(self, roll, pitch):
         d_roll = roll - self.imu.get_corrected_roll()
@@ -34,8 +33,8 @@ class Controller:
         )
 
     def get_axes(self):
-        roll = self.imu.get_corrected_roll()/131
-        pitch = self.imu.get_corrected_pitch()/131
+        roll = self.imu.get_corrected_roll()
+        pitch = self.imu.get_corrected_pitch()
         print("Roll: " + str(roll) + " degrees, Pitch: " + str(pitch) + " degrees")
         return roll, pitch
 
@@ -44,12 +43,12 @@ class Controller:
         print("IMU angles reset")
 
     def handle_telnet_connection(self, client_socket):
-        client_socket.send(b"Welcome to the controller server!\n")
+        client_socket.send(b"Connection Successful\n")
         while True:
             data = client_socket.recv(1024)
             if not data:
                 break
-            data_str = data.decode("utf-8", errors="ignore").strip()  # Decode data as UTF-8
+            data_str = data.decode("utf-8", errors="ignore").strip()
             if data_str == "get_axes":
                 roll, pitch = self.get_axes()
                 response = f"Roll: {roll} degrees, Pitch: {pitch} degrees\n"
@@ -61,6 +60,8 @@ class Controller:
                 _, roll, pitch = data_str.split()
                 self.set_axes(int(roll), int(pitch))
                 client_socket.send(b"Axes set successfully\n")
+            elif data_str == "kill_all":
+                self.kill_all()
             else:
                 client_socket.send(b"Invalid command\n")
 
@@ -78,6 +79,16 @@ class Controller:
     def cleanup(self):
         GPIO.cleanup()
         print("GPIO cleanup completed")
+
+    def kill_all(self, client_socket = 23):
+        client_socket.send(b"Stopping all...\n")
+        if self.imu:
+            self.imu.kill() 
+            self.imu = None
+        GPIO.cleanup() 
+        self.server_socket.close() 
+        client_socket.close() 
+        print("All stopped")
 
 
 if __name__ == "__main__":

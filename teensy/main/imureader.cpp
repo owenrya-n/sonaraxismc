@@ -3,10 +3,6 @@
 
 ICM_20948_I2C myICM;
 
-float xAxisTangent = 0.0;
-float yAxisTangent = 0.0;
-float zAxisTangent = 0.0;
-
 void IMUReader::begin() {
   Wire.begin();
   myICM.begin(Wire, 1);
@@ -28,16 +24,4 @@ void IMUReader::update() {
     Serial.println("Waiting for data");
     delay(500);
   }
-}
-
-float IMUReader::getXAxisTangent() {
-  return xAxisTangent;
-}
-
-float IMUReader::getYAxisTangent() {
-  return yAxisTangent;
-}
-
-float IMUReader::getZAxisTangent() {
-  return zAxisTangent;
 }

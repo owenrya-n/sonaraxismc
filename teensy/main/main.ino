@@ -28,46 +28,7 @@ void setup() {
 }
 
 void loop() {
-  switch (currentState) {
-    case IDLE:
-      handleIdleState();
-      break;
-    case TELNET:
-      handleTelnetState();
-      break;
-  }
-}
-
-void handleIdleState() {
-  // Check for Telnet connection
+  IMUReader::update();
   String cmd = telnetServer.handleClient();
-  if (cmd.length() > 0) {
-    currentState = TELNET;
-  }
-
-  // Update IMU data
-  unsigned long currentTime = millis();
-  if (currentTime - lastUpdateTime >= updateInterval) {
-    IMUReader::update();
-    lastUpdateTime = currentTime;
-  }
-}
-
-void handleTelnetState() {
-  // Handle Telnet communication
-  String cmd = telnetServer.handleClient();
-  if (cmd.length() > 0) {
-    telnetServer.parseClient(client, cmd);
-    if (cmd == "kill") {
-      client.stop();
-      currentState = IDLE;
-    }
-  }
-
-  // Update IMU data
-  unsigned long currentTime = millis();
-  if (currentTime - lastUpdateTime >= updateInterval) {
-    IMUReader::update();
-    lastUpdateTime = currentTime;
-  }
+  telnetServer.parseClient(client, cmd);
 }

@@ -1,89 +1,102 @@
-  #include "tcp.h"
-  #include "network_config.h" // Include network configuration
+#include "tcp.h"
+#include "network_config.h"
+#include "imureader.h"
+#include "controller.h"
 
-  TelnetServer::TelnetServer() : server(23) {}
-
-  float xAxisTangent = 0.0;
-  float yAxisTangent = 0.0;
-  float zAxisTangent = 0.0;
-
-  void TelnetServer::begin() {
-    Ethernet.begin(mac, ip); // Use the mac and ip variables from network_config.h
+TelnetServer::TelnetServer() : server(23) {}
+Controller controller;
+void TelnetServer::begin() {
+    Ethernet.begin(mac, ip); 
     server.begin();
-  }
+    Serial.println("Ready to Connect");
+    controller.setup();
+}
 
-  String TelnetServer::handleClient() {
+String TelnetServer::handleClient() {
     EthernetClient client = server.available();
+
+    if (!client || !client.connected() || !client.available()) {
+        return "";
+    }
+
     String lastMessage = "";
+    String incomingString = "";
+    char c;
 
-    if (client) {
-      String incomingString = "";
-      while (client.connected()) {
-        if (client.available()) {
-          char c = client.read();
-          incomingString += c;
-          if (c == '\n') {
+    while (client.available()) {
+        c = client.read();
+        if (c == '\n' || c == '\r') {
             break;
-          }
         }
-      }
-      lastMessage = incomingString;
+        incomingString += c;
+    }
 
-      if (lastMessage == "kill") {
+    lastMessage = incomingString;
+    if (lastMessage == "kill") {
         client.stop();
-      }
     }
+
+    String output = parseClient(lastMessage);
+    Serial.println(output);
+    client.println(output);
+    client.println();
+
     return lastMessage;
-  }
+}
 
-  void TelnetServer::parseClient(EthernetClient &client, String message) {
-    Serial.println("parsing");
+String TelnetServer::parseClient(String message) {
+    String output = "";
     if (message.startsWith("get_axes(")) {
-      int closingParenIndex = message.indexOf(')');
-      String xString = message.substring(9, closingParenIndex);
-      int x = xString.toInt();
-      float axisValue;
-      switch (x) {
-        case 0:
-          axisValue = xAxisTangent(); %this is where the problem is occuring
-          break;
-        case 1:
-          axisValue = yAxisTangent();
-          break;
-        case 2:
-          axisValue = zAxisTangent();
-          break;
-        default:
-          axisValue = 0.0; 
-          break;
-      }
-      client.print("Axis ");
-      client.print(x);
-      client.print(" tangent: ");
-      client.println(axisValue);
-    } else if (message.startsWith("set_axes(")) {
-      int commaIndex = message.indexOf(',');
-      int closingParenIndex = message.indexOf(')');
-      String aString = message.substring(9, commaIndex);
-      String bString = message.substring(commaIndex + 1, closingParenIndex);
-      int a = aString.toInt();
-      int b = bString.toInt();
-      // Handle set_axes command
-      client.print("Setting axis ");
-      client.print(a);
-      client.print(" to ");
-      client.println(b);
+        int closingParenIndex = message.indexOf(')');
+        String xString = message.substring(9, closingParenIndex);
+        int x = xString.toInt();
+        float axisValue;
+        switch (x) {
+            case 0:
+                axisValue = IMUReader::getXAxisTangent();
+                break;
+            case 1:
+                axisValue = IMUReader::getYAxisTangent();
+                break;
+            case 2:
+                axisValue = IMUReader::getZAxisTangent();
+                break;
+            default:
+                axisValue = 999.9; 
+                break;
+        }
+        output = "Axis " + String(x) + " Position: " + String(axisValue);
+    } 
+    else if (message.startsWith("set_axes(")) {
+        int commaIndex = message.indexOf(',');
+        int closingParenIndex = message.indexOf(')');
+        String aString = message.substring(9, commaIndex);
+        String bString = message.substring(commaIndex + 1, closingParenIndex);
+        int a = aString.toInt();
+        int b = bString.toInt();
+        switch (a) {
+            case 0:
+                controller.moveTicToPosition(b-IMUReader::getXAxisTangent());
+                controller.waitForPosition(100);
+                break;
+            case 1:
+                output = "no motor at axis 1";
+                break;
+            case 2:
+                output = "no motor at axis 2";
+                break;
+            default:
+                output = "no motor at axis 3";
+                break;
+        output = "set axis "+String(a)+" to position "+String(b);
+        }
     } else if (message == "h") {
-      // Print help message
-      client.println("Available functions:");
-      client.println("get_axes(axis_index) - Returns the current angle of the specified axis");
-      client.println("set_axes(axis_index, desired_angle) - Set the angle of the specified axis");
-      client.println("kill - Close the TCP connection");
-    } else if (message == "kill") {
-      // Close TCP connection
-      client.println("Connection closed.");
-      client.stop();
+        output = "Available functions:\n"
+                 "get_axes(axis_index) - Returns the current angle of the specified axis\n"
+                 "set_axes(axis_index, desired_angle) - Set the angle of the specified axis\n"
+                 "kill - Close the TCP connection";
+    } else if (message == "kill") { 
+      output = "closing connection";
     }
-
-
-  }
+    return output;
+}

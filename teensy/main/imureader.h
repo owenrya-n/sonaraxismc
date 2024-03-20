@@ -7,10 +7,9 @@ class IMUReader {
 public:
   static void begin();
   static void update();
-   float xAxisTangent;
-   float yAxisTangent;
-   float zAxisTangent;
-
+  static float getXAxisTangent();
+  static float getYAxisTangent();
+  static float getZAxisTangent();
 };
 
 #endif

@@ -2,6 +2,7 @@
 #include "network_config.h"
 #include "imureader.h"
 #include "controller.h"
+#define SCALE_FACTOR 0.555
 
 TelnetServer::TelnetServer() : server(23) {}
 Controller controller;
@@ -10,11 +11,13 @@ void TelnetServer::begin() {
     server.begin();
     Serial.println("Ready to Connect");
     controller.setup();
+    
 }
-
+int pos_diff = 0;
 String TelnetServer::handleClient() {
     EthernetClient client = server.available();
-
+    client.setTimeout(1000000);
+    client.setConnectionTimeout(1000000);
     if (!client || !client.connected() || !client.available()) {
         return "";
     }
@@ -35,6 +38,7 @@ String TelnetServer::handleClient() {
     if (lastMessage == "kill") {
         client.stop();
     }
+    
 
     String output = parseClient(lastMessage);
     Serial.println(output);
@@ -76,24 +80,27 @@ String TelnetServer::parseClient(String message) {
         int b = bString.toInt();
         switch (a) {
             case 0:
-                controller.moveTicToPosition(b-IMUReader::getXAxisTangent());
-                controller.waitForPosition(100);
+                output = "no motor at axis 2";
+                //controller.waitForPosition(100);
                 break;
             case 1:
                 output = "no motor at axis 1";
                 break;
             case 2:
-                output = "no motor at axis 2";
+                controller.resetCommandTimeout();
+                pos_diff = IMUReader::getZAxisTangent() - b*SCALE_FACTOR;
+                controller.moveTicPosition(-pos_diff);
                 break;
             default:
                 output = "no motor at axis 3";
                 break;
-        output = "set axis "+String(a)+" to position "+String(b);
+        
         }
-    } else if (message == "h") {
-        output = "Available functions:\n"
-                 "get_axes(axis_index) - Returns the current angle of the specified axis\n"
-                 "set_axes(axis_index, desired_angle) - Set the angle of the specified axis\n"
+        output = "set axis "+String(a)+" to position "+String(b);
+    } else if (message.startsWith("h")) {
+        output = "Available functions:\n\r"
+                 "get_axes(axis_index) - Returns the current angle of the specified axis\n\r"
+                 "set_axes(axis_index, desired_angle) - Set the angle of the specified axis\n\r"
                  "kill - Close the TCP connection";
     } else if (message == "kill") { 
       output = "closing connection";

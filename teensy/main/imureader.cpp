@@ -8,8 +8,8 @@ float yAxisTangent = 0.0;
 float zAxisTangent = 0.0;
 
 void IMUReader::begin() {
-  Wire.begin();
-  myICM.begin(Wire, 1);
+  Wire1.begin();
+  myICM.begin(Wire1);
 
   Serial.begin(115200);
   while (!Serial) {

@@ -13,9 +13,13 @@ EthernetClient client;
 String cmd = "";
 
 void setup() {
+  Wire.begin();
+  Wire2.begin();
+  Wire1.begin();
   IMUReader::begin(); 
   telnetServer.begin();
-  Wire1.begin();
+  //Wire.begin();
+  //Controller.setup();
 }
 
 void loop() {

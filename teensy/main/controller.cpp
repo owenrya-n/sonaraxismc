@@ -3,24 +3,29 @@
 
 Controller::Controller() {}
 
+
+#define MAX_SPEED 100000000
+#define MAX_ACCEL 100000
+
+int pos = 0.55;
 void Controller::setup() {
     // Set up I2C.
-    Wire1.begin();
+    Wire.begin();
 
     // Give the Tic some time to start up.
     delay(20);
 
     // Set the Tic's current position to 0, so that when we command
     // it to move later, it will move a predictable amount.
-    tic.haltAndSetPosition(0);
-
-    // Tells the Tic that it is OK to start driving the motor.  The
-    // Tic's safe-start feature helps avoid unexpected, accidental
-    // movement of the motor: if an error happens, the Tic will not
-    // drive the motor again until it receives the Exit Safe Start
-    // command.  The safe-start feature can be disbled in the Tic
-    // Control Center.
     tic.exitSafeStart();
+
+    tic.deenergize();
+    tic.energize();
+    tic.setProduct(TicProduct::Tic36v4);
+    tic.haltAndSetPosition(0);
+    tic.setMaxSpeed(MAX_SPEED);
+    tic.setMaxAccel(MAX_ACCEL);
+    tic.setMaxDecel(MAX_ACCEL);
     
     Serial.print(tic.getEnergized());
 }
@@ -42,6 +47,8 @@ void Controller::waitForPosition(int32_t targetPosition) {
     } while (tic.getCurrentPosition() != targetPosition);
 }
 
-void Controller::moveTicToPosition(int32_t position) {
-    tic.setTargetPosition(position);
+void Controller::moveTicPosition(int32_t delta) {
+    pos = tic.getCurrentPosition();
+    tic.setTargetPosition(pos + delta);
+    Serial.println("set cmd rec");
 }

@@ -3,7 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}",
                 "C:/Strawberry/c/include/postgresql/server/executor"
             ],
             "defines": [

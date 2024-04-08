@@ -25,5 +25,6 @@ void setup() {
 void loop() {
   IMUReader::update();
   cmd = telnetServer.handleClient();
+  //Serial.println(IMUReader::getZAxisTangent());
   //Serial.println(cmd);
 }

@@ -2,7 +2,7 @@
 #include "network_config.h"
 #include "imureader.h"
 #include "controller.h"
-#define SCALE_FACTOR 0.555
+#define SCALE_FACTOR 0.555*2
 
 TelnetServer::TelnetServer() : server(23) {}
 Controller controller;
@@ -13,11 +13,10 @@ void TelnetServer::begin() {
     controller.setup();
     
 }
-int pos_diff = 0;
+float pos_diff = 0;
+float pos_d = 0;
 String TelnetServer::handleClient() {
     EthernetClient client = server.available();
-    client.setTimeout(1000000);
-    client.setConnectionTimeout(1000000);
     if (!client || !client.connected() || !client.available()) {
         return "";
     }
@@ -50,19 +49,22 @@ String TelnetServer::handleClient() {
 
 String TelnetServer::parseClient(String message) {
     String output = "";
-    if (message.startsWith("get_axes(")) {
-        int closingParenIndex = message.indexOf(')');
-        String xString = message.substring(9, closingParenIndex);
+    if (message.startsWith("?")) {
+        int closingParenIndex = message.indexOf(';');
+        String xString = message.substring(1, closingParenIndex);
         int x = xString.toInt();
         float axisValue;
         switch (x) {
             case 0:
+                IMUReader::update();
                 axisValue = IMUReader::getXAxisTangent();
                 break;
             case 1:
+                IMUReader::update();
                 axisValue = IMUReader::getYAxisTangent();
                 break;
             case 2:
+                IMUReader::update();
                 axisValue = IMUReader::getZAxisTangent();
                 break;
             default:
@@ -71,25 +73,27 @@ String TelnetServer::parseClient(String message) {
         }
         output = "Axis " + String(x) + " Position: " + String(axisValue);
     } 
-    else if (message.startsWith("set_axes(")) {
+    else if (message.startsWith("M")) {
         int commaIndex = message.indexOf(',');
-        int closingParenIndex = message.indexOf(')');
-        String aString = message.substring(9, commaIndex);
+        int closingParenIndex = message.indexOf(';');
+        String aString = message.substring(1, commaIndex);
         String bString = message.substring(commaIndex + 1, closingParenIndex);
         int a = aString.toInt();
-        int b = bString.toInt();
+        int b = bString.toInt()*SCALE_FACTOR;
         switch (a) {
             case 0:
                 output = "no motor at axis 2";
-                //controller.waitForPosition(100);
                 break;
             case 1:
                 output = "no motor at axis 1";
                 break;
             case 2:
                 controller.resetCommandTimeout();
-                pos_diff = IMUReader::getZAxisTangent() - b*SCALE_FACTOR;
-                controller.moveTicPosition(-pos_diff);
+                IMUReader::update();
+                IMUReader::update();
+                pos_d = IMUReader::getZAxisTangent();
+                pos_diff = pos_d*SCALE_FACTOR - b;
+                controller.moveTicPosition(pos_diff);
                 break;
             default:
                 output = "no motor at axis 3";
@@ -99,8 +103,8 @@ String TelnetServer::parseClient(String message) {
         output = "set axis "+String(a)+" to position "+String(b);
     } else if (message.startsWith("h")) {
         output = "Available functions:\n\r"
-                 "get_axes(axis_index) - Returns the current angle of the specified axis\n\r"
-                 "set_axes(axis_index, desired_angle) - Set the angle of the specified axis\n\r"
+                 "? axis_index - Returns the current angle of the specified axis\n\r"
+                 "M axis_index, desired_angle - Set the angle of the specified axis\n\r"
                  "kill - Close the TCP connection";
     } else if (message == "kill") { 
       output = "closing connection";

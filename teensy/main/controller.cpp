@@ -38,11 +38,17 @@ void Controller::waitForPosition(int32_t targetPosition) {
 }
 
 void Controller::moveTicPosition(int32_t delta) {
+    if (pos < rangeneg || pos > rangepos) {
+        tic.deenergize();
+        Serial.println("ERROR: CURRENT POSITION OTUSIDE ANGULAR RANGE");
+    }
     float pos = tic.getCurrentPosition();
     float targetPos = pos + delta;
     if (targetPos >= rangeneg && targetPos <= rangepos) {
         tic.resetCommandTimeout();
         tic.setTargetPosition(targetPos);
+    } else {
+        Serial.println("ERROR: TARGET POSITION OUTSIDE ANGULAR RANGE");
     }
 }
 

@@ -38,7 +38,30 @@ void Controller::waitForPosition(int32_t targetPosition) {
 }
 
 void Controller::moveTicPosition(int32_t delta) {
-    tic.resetCommandTimeout();
     float pos = tic.getCurrentPosition();
-    tic.setTargetPosition(pos + delta);
+    float targetPos = pos + delta;
+    if (targetPos >= rangeneg && targetPos <= rangepos) {
+        tic.resetCommandTimeout();
+        tic.setTargetPosition(targetPos);
+    }
+}
+
+void Controller::ZeroTicPosition(int32_t zerodelta) {
+    moveTicPosition(zerodelta);
+    int32_t rangepos = 0;
+    while (digitalRead(15) == LOW) {
+        tic.setTargetPosition(tic.getCurrentPosition() + 1);
+        rangepos++;
+    }
+    Serial.print("Steps taken until pin 15 is high: ");
+    Serial.println(rangepos);
+
+    moveTicPosition(zerodelta);
+    int32_t rangeneg = 0;
+    while (digitalRead(14) == LOW) {
+        tic.setTargetPosition(tic.getCurrentPosition() + 1);
+        rangeneg++;
+    }
+    Serial.print("Steps taken until pin 14 is high: ");
+    Serial.println(rangeneg);
 }

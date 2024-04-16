@@ -13,9 +13,11 @@ public:
     TelnetServer();
     void begin();
     String handleClient();
+    void printClient(String cmessage);
+    float des_pos;
 
 private:
-    String parseClient(String message);
+    int parseClient(String message);
 };
 
 #endif

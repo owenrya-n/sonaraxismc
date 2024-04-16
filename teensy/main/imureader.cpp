@@ -15,7 +15,7 @@ void IMUReader::begin() {
   Serial.begin(115200);
   while (!Serial) {
   }
-  Serial.println("IMU Datastream Begins..");
+  Serial.println("IMU Connection Successful");
 }
 
 void IMUReader::update() {
@@ -27,20 +27,17 @@ void IMUReader::update() {
     float sumZAxis = 0.0;
 
     for (int i = 0; i < count; i++) {
-      sumXAxis += atan2(myICM.accX(), myICM.accY()) * 180 / M_PI; // Accumulate the values
+      sumXAxis += atan2(myICM.accX(), myICM.accY()) * 180 / M_PI; 
       sumYAxis += atan2(myICM.accX(), myICM.accZ()) * 180 / M_PI;
       sumZAxis += atan2(myICM.accY(), myICM.accZ()) * 180 / M_PI;
-      //delay(5); // Add a slight delay if needed to allow sensor to stabilize
     }
 
-    // Average the accumulated values and assign to original variables
     xAxisTangent = sumXAxis / count;
     yAxisTangent = sumYAxis / count;
     zAxisTangent = sumZAxis / count;
 
-    //Serial.println(xAxisTangent);
   } else {
-    Serial.println("Waiting for data");
+    Serial.println("");
     delay(500);
   }
 }

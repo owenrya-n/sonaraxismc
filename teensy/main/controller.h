@@ -1,5 +1,6 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
+#define SCALE_FACTOR 0.555*2
 
 #include <Arduino.h>
 #include <Tic.h>

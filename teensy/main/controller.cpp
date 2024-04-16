@@ -7,7 +7,6 @@ Controller::Controller() : ticSerial(7, 8), tic(ticSerial, 14) {}
 void Controller::setup() {
     Serial.begin(9600);
     ticSerial.begin(9600);
-    pinMode(LED_BUILTIN, OUTPUT);
 
     tic.exitSafeStart();
     tic.deenergize();
@@ -39,7 +38,7 @@ void Controller::waitForPosition(int32_t targetPosition) {
 
 void Controller::moveTicPosition(int32_t delta) {
     if (pos < rangeneg || pos > rangepos) {
-        tic.deenergize();
+        tic.haltAndHold();
         Serial.println("ERROR: CURRENT POSITION OTUSIDE ANGULAR RANGE");
     }
     float pos = tic.getCurrentPosition();
@@ -53,6 +52,8 @@ void Controller::moveTicPosition(int32_t delta) {
 }
 
 void Controller::ZeroTicPosition(int32_t zerodelta) {
+    rangeneg = -9999;
+    rengepos = 9999;
     moveTicPosition(zerodelta);
     int32_t rangepos = 0;
     while (digitalRead(15) == LOW) {

@@ -5,12 +5,12 @@
 
 
 TelnetServer::TelnetServer() : server(23) {}
-Controller controller;
+//Controller controller;
 void TelnetServer::begin() {
     Ethernet.begin(mac, ip); 
     server.begin();
     Serial.println("Ready to Connect");
-    controller.setup();
+    //controller.setup();
     
 }
 
@@ -46,10 +46,23 @@ int TelnetServer::parseClient(String message) {
         int closingParenIndex = message.indexOf(';');
         String xString = message.substring(1, closingParenIndex);
         int x = xString.toInt();
-        float axisValue;
         switch (x) {
             case 1:
                 return 001;
+                break;
+            default:
+                des_pos = 0;
+                return 000;
+                break;
+        }
+    } 
+    else if (message.startsWith("Z")) {
+        int closingParenIndex = message.indexOf(';');
+        String xString = message.substring(1, closingParenIndex);
+        int x = xString.toInt();
+        switch (x) {
+            case 1:
+                return 501;
                 break;
             default:
                 des_pos = 0;
@@ -63,7 +76,7 @@ int TelnetServer::parseClient(String message) {
         String aString = message.substring(1, commaIndex);
         String bString = message.substring(commaIndex + 1, closingParenIndex);
         int a = aString.toInt();
-        int b = bString.toInt()*SCALE_FACTOR;
+        int b = bString.toInt()*0.55;
         switch (a) {
             case 0:
                 des_pos = b;
@@ -73,15 +86,18 @@ int TelnetServer::parseClient(String message) {
                 des_pos = 0;
                 return 000;
                 break;
-        
         }
         output = "set axis "+String(a)+" to position "+String(b);
     } else if (message.startsWith("h")) {
         return 200;
+    } else {
+      return 999;
     }
+}
 
 void TelnetServer::printClient(String cmessage){
+    //if (server.available()) {
     Serial.println(cmessage);
-    client.println(cmessage);
+    //server.println(cmessage);}
 }
-}
+

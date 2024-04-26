@@ -1,25 +1,28 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
-#define SCALE_FACTOR 0.555*2
 
-#include <Arduino.h>
 #include <Tic.h>
+#include <SoftwareSerial.h>
 
 class Controller {
 public:
     Controller();
+
     void setup();
     void resetCommandTimeout();
     void delayWhileResettingCommandTimeout(uint32_t ms);
     void waitForPosition(int32_t targetPosition);
     void moveTicPosition(int32_t delta);
     void ZeroTicPosition(int32_t zerodelta);
+    SoftwareSerial ticSerial;
+    TicSerial tic;
+    float rangeneg;
+    float rangepos;
+    float SCALE_FACTOR = 0.55;
+    
 
 private:
-    TicSerial ticSerial;
-    TicI2C tic;
-    int32_t rangepos;
-    int32_t rangeneg;
+
 };
 
 #endif

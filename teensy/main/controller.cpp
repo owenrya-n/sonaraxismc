@@ -1,7 +1,14 @@
 #include "controller.h"
+#include <Tic.h>
+#include <SoftwareSerial.h>
+
 #define MAX_SPEED 100000000
 #define MAX_ACCEL 100000
 
+//SoftwareSerial ticSerial0(7,8);
+//TicSerial tic(ticSerial0, 14); 
+
+//Controller::Controller() : {};
 Controller::Controller() : ticSerial(7, 8), tic(ticSerial, 14) {}
 
 void Controller::setup() {
@@ -37,11 +44,12 @@ void Controller::waitForPosition(int32_t targetPosition) {
 }
 
 void Controller::moveTicPosition(int32_t delta) {
+    float pos = tic.getCurrentPosition();
     if (pos < rangeneg || pos > rangepos) {
         tic.haltAndHold();
         Serial.println("ERROR: CURRENT POSITION OTUSIDE ANGULAR RANGE");
     }
-    float pos = tic.getCurrentPosition();
+
     float targetPos = pos + delta;
     if (targetPos >= rangeneg && targetPos <= rangepos) {
         tic.resetCommandTimeout();
@@ -53,7 +61,7 @@ void Controller::moveTicPosition(int32_t delta) {
 
 void Controller::ZeroTicPosition(int32_t zerodelta) {
     rangeneg = -9999;
-    rengepos = 9999;
+    rangepos = 9999;
     moveTicPosition(zerodelta);
     int32_t rangepos = 0;
     while (digitalRead(15) == LOW) {
@@ -65,7 +73,7 @@ void Controller::ZeroTicPosition(int32_t zerodelta) {
 
     moveTicPosition(zerodelta);
     int32_t rangeneg = 0;
-    while (digitalRead(14) == LOW) {
+    while (digitalRead(16) == LOW) {
         tic.setTargetPosition(tic.getCurrentPosition() + 1);
         rangeneg++;
     }

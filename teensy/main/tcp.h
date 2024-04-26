@@ -15,9 +15,10 @@ public:
     String handleClient();
     void printClient(String cmessage);
     float des_pos;
+    int parseClient(String message);
 
 private:
-    int parseClient(String message);
+    
 };
 
 #endif

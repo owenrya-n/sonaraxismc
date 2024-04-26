@@ -1,20 +1,21 @@
 #include <NativeEthernet.h>
 #include <SPI.h>
 #include "tcp.h"
-#include "network_config.h"
+//#include "network_config.h"
 #include "imureader.h"
 #include "controller.h"
 
 TelnetServer telnetServer;
 EthernetClient client;
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-IPAddress ip(192, 168, 1, 177);
+//byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+//IPAddress ip(192, 168, 1, 177);
 
 String cmd = "";
 int state = 0;
 float pos_diff = 0;
 float pos_d = 0;
+Controller controller;
 
 void setup() {
   Wire.begin();
@@ -22,6 +23,7 @@ void setup() {
   Wire1.begin();
   IMUReader::begin(); 
   telnetServer.begin();
+  controller.setup();
 
 }
 
@@ -47,7 +49,7 @@ void statemx(int state) {
     IMUReader::update();
     IMUReader::update();
     pos_d = IMUReader::getZAxisTangent();
-    pos_diff = pos_d*SCALE_FACTOR;
+    pos_diff = pos_d*controller.SCALE_FACTOR;
     controller.ZeroTicPosition(pos_diff);
   }
 
@@ -56,7 +58,7 @@ void statemx(int state) {
   if(state == 001){
     IMUReader::update();
     IMUReader::update();
-    telnetserver.printClient(IMUReader::getZAxisTangent())
+    telnetServer.printClient(IMUReader::getZAxisTangent());
   }
 
 
@@ -66,7 +68,7 @@ void statemx(int state) {
     IMUReader::update();
     IMUReader::update();
     pos_d = IMUReader::getZAxisTangent();
-    pos_diff = pos_d*SCALE_FACTOR - b;
+    pos_diff = pos_d*controller.SCALE_FACTOR - telnetServer.des_pos;
     controller.moveTicPosition(pos_diff);
   }
 

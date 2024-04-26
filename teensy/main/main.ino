@@ -6,7 +6,6 @@
 #include "controller.h"
 
 TelnetServer telnetServer;
-EthernetClient client;
 
 //byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 //IPAddress ip(192, 168, 1, 177);
@@ -24,7 +23,6 @@ void setup() {
   IMUReader::begin(); 
   telnetServer.begin();
   controller.setup();
-
 }
 
 void loop() {

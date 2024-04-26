@@ -8,6 +8,7 @@
 class TelnetServer {
 private:
     EthernetServer server;
+    EthernetClient client; 
 
 public:
     TelnetServer();
@@ -16,6 +17,10 @@ public:
     void printClient(String cmessage);
     float des_pos;
     int parseClient(String message);
+    String new_msg;
+    
+
+
 
 private:
     

@@ -4,24 +4,29 @@
 #include "controller.h"
 
 
-TelnetServer::TelnetServer() : server(23) {}
+TelnetServer::TelnetServer() : server(23) {
+}
+
+
 //Controller controller;
 void TelnetServer::begin() {
     Ethernet.begin(mac, ip); 
     server.begin();
     Serial.println("Ready to Connect");
     //controller.setup();
-    
+    client = server.available();
 }
 
+
 String TelnetServer::handleClient() {
-    EthernetClient client = server.available();
+    
     if (!client || !client.connected() || !client.available()) {
         return "";
     }
 
     String lastMessage = "";
     String incomingString = "";
+    String prev_msg = "///";
     char c;
 
     while (client.available()) {
@@ -38,6 +43,12 @@ String TelnetServer::handleClient() {
     }
 
     return lastMessage;
+    
+    //if (new_msg != prev_msg){
+     /// client.println("hhh");
+    //}
+
+    //prev_msg = new_msg;
 }
 
 int TelnetServer::parseClient(String message) {
@@ -98,6 +109,7 @@ int TelnetServer::parseClient(String message) {
 void TelnetServer::printClient(String cmessage){
     //if (server.available()) {
     Serial.println(cmessage);
-    //server.println(cmessage);}
+    client.println(cmessage);
+    //new_msg = cmessage;
 }
 

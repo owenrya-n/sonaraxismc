@@ -15,7 +15,6 @@ void IMUReader::begin() {
   Serial.begin(115200);
   while (!Serial) {
   }
-  Serial.println("IMU Connection Successful");
 }
 
 void IMUReader::update() {
@@ -37,6 +36,7 @@ void IMUReader::update() {
     zAxisTangent = sumZAxis / count;
 
   } else {
+    Serial.println("Retrying IMU Connection");
     Serial.println("");
     delay(500);
   }

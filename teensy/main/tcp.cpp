@@ -14,14 +14,16 @@ void TelnetServer::begin() {
     server.begin();
     Serial.println("Ready to Connect");
     //controller.setup();
-    client = server.available();
+    
+    
 }
 
 
 String TelnetServer::handleClient() {
-    
+    EthernetClient client = server.available();
     if (!client || !client.connected() || !client.available()) {
         return "";
+        Serial.print("connected");
     }
 
     String lastMessage = "";
@@ -93,6 +95,10 @@ int TelnetServer::parseClient(String message) {
                 des_pos = b;
                 return 101;
                 break;
+            case 3:
+                des_pos = b;
+                return 671;
+                break;
             default:
                 des_pos = 0;
                 return 000;
@@ -108,8 +114,9 @@ int TelnetServer::parseClient(String message) {
 
 void TelnetServer::printClient(String cmessage){
     //if (server.available()) {
+    //EthernetClient client = server.available();
     Serial.println(cmessage);
-    client.println(cmessage);
+    //client.println(cmessage);
     //new_msg = cmessage;
 }
 

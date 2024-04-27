@@ -4,6 +4,7 @@
 //#include "network_config.h"
 #include "imureader.h"
 #include "controller.h"
+#include "controller_lin.h"
 
 TelnetServer telnetServer;
 
@@ -15,6 +16,7 @@ int state = 0;
 float pos_diff = 0;
 float pos_d = 0;
 Controller controller;
+//ControllerLin xaxis;
 
 void setup() {
   Wire.begin();
@@ -78,6 +80,8 @@ void statemx(int state) {
     telnetServer.printClient("M axis_index, desired_angle - Set the angle of the specified axis\n\r");
   }
 
-
+  if(state == 671){
+    //xaxis.moveTicPosition(pos_diff);
+  }
 
 }

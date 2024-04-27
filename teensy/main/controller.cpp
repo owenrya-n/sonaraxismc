@@ -9,12 +9,12 @@
 //TicSerial tic(ticSerial0, 14); 
 
 //Controller::Controller() : {};
-Controller::Controller() : ticSerial(7, 8), tic(ticSerial, 14) {}
+Controller::Controller() : ticSerial(9, 10), tic(ticSerial, 14) {}
 
 void Controller::setup() {
     Serial.begin(9600);
     ticSerial.begin(9600);
-
+  
     tic.exitSafeStart();
     tic.deenergize();
     tic.energize();
@@ -24,9 +24,10 @@ void Controller::setup() {
     tic.setMaxAccel(MAX_ACCEL);
     tic.setMaxDecel(MAX_ACCEL);
     tic.setStepMode(TicStepMode::Half);
+    Serial.print("Controller");
 }
 
-void Controller::resetCommandTimeout() {
+void Controller::resetCommandTimeout() {  
     tic.resetCommandTimeout();
 }
 

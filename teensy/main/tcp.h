@@ -8,7 +8,6 @@
 class TelnetServer {
 private:
     EthernetServer server;
-    EthernetClient client; 
 
 public:
     TelnetServer();

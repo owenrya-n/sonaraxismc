@@ -53,6 +53,7 @@ void statemx(int state) {
 
   if(state == 200){//Help Menu (help)
     telnetServer.printClient("Available functions:");
+    telnetServer.printClient("help - Returns help menu");
     telnetServer.printClient("? axis_index - Returns the current angle of the specified axis");
     telnetServer.printClient("M axis_index, desired_angle - Set the angle of the specified axis");
     telnetServer.printClient("Z axis_index - Perform calibration/homing for specified axis");

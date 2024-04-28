@@ -1,6 +1,6 @@
 To command teensy using python:
 
-https://docs.python.org/3/library/telnetlib.html
+[https://docs.python.org/3/library/telnetlib.html](https://pypi.org/project/telnetlib3/)
 
 IPV4: 192.168.1.177
 

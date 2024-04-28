@@ -13,8 +13,14 @@ void IMUReader::begin() {
   myICM.begin(Wire1);
 
   Serial.begin(115200);
-  while (!Serial) {
+  while (!Serial) {}
+  if (myICM.dataReady()) {
+    Serial.println("Status: IMU detected on Wire1");
   }
+  else {
+    Serial.println("Error: IMU not detected on Wire1");
+  }
+
 }
 
 void IMUReader::update() {
@@ -36,7 +42,7 @@ void IMUReader::update() {
     zAxisTangent = sumZAxis / count;
 
   } else {
-    Serial.println("Retrying IMU Connection");
+    Serial.println("Retrying IMU qwery");
     Serial.println("");
     delay(500);
   }

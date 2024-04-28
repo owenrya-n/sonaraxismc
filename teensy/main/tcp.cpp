@@ -8,14 +8,10 @@ TelnetServer::TelnetServer() : server(23) {
 }
 
 
-//Controller controller;
 void TelnetServer::begin() {
     Ethernet.begin(mac, ip); 
     server.begin();
-    Serial.println("Ready to Connect");
-    //controller.setup();
-    
-    
+    Serial.println("Status: Telnet Server Initialized"); 
 }
 
 
@@ -23,9 +19,9 @@ String TelnetServer::handleClient() {
     EthernetClient client = server.available();
     if (!client || !client.connected() || !client.available()) {
         return "";
-        Serial.print("connected");
-    }
-
+    } //else {
+    //  Serial.println("Status: Command recieved from client");
+    //}
     String lastMessage = "";
     String incomingString = "";
     String prev_msg = "///";
@@ -45,12 +41,6 @@ String TelnetServer::handleClient() {
     }
 
     return lastMessage;
-    
-    //if (new_msg != prev_msg){
-     /// client.println("hhh");
-    //}
-
-    //prev_msg = new_msg;
 }
 
 int TelnetServer::parseClient(String message) {
@@ -82,7 +72,7 @@ int TelnetServer::parseClient(String message) {
                 return 000;
                 break;
         }
-    } 
+    }
     else if (message.startsWith("M")) {
         int commaIndex = message.indexOf(',');
         int closingParenIndex = message.indexOf(';');
@@ -105,18 +95,21 @@ int TelnetServer::parseClient(String message) {
                 break;
         }
         output = "set axis "+String(a)+" to position "+String(b);
-    } else if (message.startsWith("h")) {
+    } 
+    else if (message.startsWith("h")) {
         return 200;
-    } else {
+    } 
+    else {
       return 999;
     }
 }
 
+
 void TelnetServer::printClient(String cmessage){
     //if (server.available()) {
-    //EthernetClient client = server.available();
+    EthernetClient client = server.available();
     Serial.println(cmessage);
-    //client.println(cmessage);
+    client.println(cmessage);
     //new_msg = cmessage;
 }
 

@@ -5,16 +5,11 @@
 #define MAX_SPEED 100000000
 #define MAX_ACCEL 100000
 
-//SoftwareSerial ticSerial0(7,8);
-//TicSerial tic(ticSerial0, 14); 
-
-//Controller::Controller() : {};
-Controller::Controller() : ticSerial(9, 10), tic(ticSerial, 14) {}
+Controller::Controller(int aio1, int aio2) : ticSerial(aio1, aio2), tic(ticSerial, 14) {}
 
 void Controller::setup() {
     Serial.begin(9600);
     ticSerial.begin(9600);
-  
     tic.exitSafeStart();
     tic.deenergize();
     tic.energize();
@@ -24,7 +19,11 @@ void Controller::setup() {
     tic.setMaxAccel(MAX_ACCEL);
     tic.setMaxDecel(MAX_ACCEL);
     tic.setStepMode(TicStepMode::Half);
-    Serial.print("Controller");
+    if (tic.getEnergized()) {
+      Serial.println("Status: A Motor Controller Initialized Successfully");
+    } else {
+      Serial.println("Status: A Motor Controller Failed to Initialize");
+    }
 }
 
 void Controller::resetCommandTimeout() {  
@@ -80,4 +79,11 @@ void Controller::ZeroTicPosition(int32_t zerodelta) {
     }
     Serial.print("Steps taken until pin 14 is high: ");
     Serial.println(rangeneg);
+}
+
+void Controller::moveTicPositionLinear(int32_t delta) {
+    float pos = tic.getCurrentPosition();
+    float targetPos = pos + delta;
+    tic.resetCommandTimeout();
+    tic.setTargetPosition(targetPos);
 }

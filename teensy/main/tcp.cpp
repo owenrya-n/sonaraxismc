@@ -100,6 +100,9 @@ int TelnetServer::parseClient(String message) {
     else if (message.startsWith("h")) {
         return 200;
     } 
+    else if (message.startsWith("X")) {
+        return 888;
+    } 
     else {
       return 999;
     }

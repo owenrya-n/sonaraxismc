@@ -94,4 +94,10 @@ void statemx(int state) {
     telnetServer.printClient("ACK");
   }
 
+  if(state == 888){//Electronic ESTOP
+    x_axis_linear.stop();
+    roll.stop();
+    telnetServer.printClient("DIS");
+  }
+
 }

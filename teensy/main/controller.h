@@ -16,6 +16,7 @@ public:
     void moveTicPosition(int32_t delta);
     void ZeroTicPosition(int32_t zerodelta);
     void moveTicPositionLinear(int32_t delta);
+    void stop();
     float SCALE_FACTOR = 0.55;
 
 private:

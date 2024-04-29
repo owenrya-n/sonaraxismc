@@ -91,3 +91,9 @@ void Controller::moveTicPositionLinear(int32_t delta) {
     tic.setTargetPosition(targetPos);
     //tic.resetCommandTimeout();
 }
+
+void Controller::stop() {
+    Serial.println("Emergency Stop Triggered");
+    tic.setCurrentLimit(0);
+    tic.deenergize();
+}

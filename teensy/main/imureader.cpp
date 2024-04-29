@@ -10,15 +10,18 @@ int count = 100000;
 
 void IMUReader::begin() {
   Wire1.begin();
+  Wire.begin();
+  Wire2.begin();
   myICM.begin(Wire1);
 
   Serial.begin(115200);
+  delay(500);
   while (!Serial) {}
   if (myICM.dataReady()) {
-    Serial.println("Status: IMU detected on Wire1");
+    Serial.println("STATUS: IMU detected on Wire1");
   }
   else {
-    Serial.println("Error: IMU not detected on Wire1");
+    Serial.println("ERROR: IMU not detected on Wire1");
   }
 
 }

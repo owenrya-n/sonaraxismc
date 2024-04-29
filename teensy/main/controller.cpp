@@ -3,26 +3,29 @@
 #include <SoftwareSerial.h>
 
 #define MAX_SPEED 100000000
-#define MAX_ACCEL 100000
+#define MAX_ACCEL 50000
 
 Controller::Controller(int aio1, int aio2) : ticSerial(aio1, aio2), tic(ticSerial, 14) {}
 
 void Controller::setup() {
-    Serial.begin(9600);
+    //Serial.begin(9600);
     ticSerial.begin(9600);
-    tic.exitSafeStart();
+    delay(500);
+    //tic.enterSafeStart();
+    
+    //tic.exitSafeStart();
     tic.deenergize();
     tic.energize();
     tic.setProduct(TicProduct::Tic36v4);
-    tic.haltAndSetPosition(0);
+    //tic.haltAndSetPosition(0);
     tic.setMaxSpeed(MAX_SPEED);
     tic.setMaxAccel(MAX_ACCEL);
     tic.setMaxDecel(MAX_ACCEL);
     tic.setStepMode(TicStepMode::Half);
     if (tic.getEnergized()) {
-      Serial.println("Status: A Motor Controller Initialized Successfully");
+      Serial.println("STATUS: A Motor Controller Initialized Successfully");
     } else {
-      Serial.println("Status: A Motor Controller Failed to Initialize");
+      Serial.println("ERROR: A Motor Controller Failed to Initialize");
     }
 }
 
@@ -82,8 +85,9 @@ void Controller::ZeroTicPosition(int32_t zerodelta) {
 }
 
 void Controller::moveTicPositionLinear(int32_t delta) {
+    tic.setCurrentLimit(1000);
     float pos = tic.getCurrentPosition();
     float targetPos = pos + delta;
-    tic.resetCommandTimeout();
     tic.setTargetPosition(targetPos);
+    //tic.resetCommandTimeout();
 }

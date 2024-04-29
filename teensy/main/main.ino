@@ -11,23 +11,27 @@ float pos_diff = 0;
 float pos_d = 0;
 
 //Instatniate motion axes
-Controller x_axis_linear(14,15);
+Controller x_axis_linear(7,8);
 Controller roll(16,17);
 
 //Instatntiate tcp
 TelnetServer telnetServer;
-
+IMUReader imu;
 void setup() {
-  //Initialize IMU reader and I2C
-  Wire1.begin();
-  IMUReader::begin(); 
 
-  //Begin telnet server
-  telnetServer.begin();
+
 
   //Setup motion controllers
   x_axis_linear.setup();
   roll.setup();
+  
+  //Begin telnet server
+  telnetServer.begin();
+
+  //Initialize IMU reader and I2C
+  imu.begin(); 
+
+
 }
 
 void loop() {
@@ -39,8 +43,8 @@ void loop() {
   statemx(state);
 
   //refresh motion controllers
-  x_axis_linear.resetCommandTimeout();
-  roll.resetCommandTimeout();
+  //x_axis_linear.resetCommandTimeout();
+  //roll.resetCommandTimeout();
 
 }
 
@@ -61,32 +65,32 @@ void statemx(int state) {
 
   if(state == 501){//Roll Calibration State (Z1)
     roll.resetCommandTimeout();
-    IMUReader::update();
-    IMUReader::update();
-    pos_d = IMUReader::getZAxisTangent();
+    imu.update();
+    imu.update();
+    pos_d = imu.getZAxisTangent();
     pos_diff = pos_d*roll.SCALE_FACTOR;
     roll.ZeroTicPosition(pos_diff);
     telnetServer.printClient("ACK");
   }
 
   if(state == 001){//Roll Position Query State (?1)
-    IMUReader::update();
-    IMUReader::update();
-    telnetServer.printClient(IMUReader::getZAxisTangent());
+    imu.update();
+    imu.update();
+    telnetServer.printClient(imu.getZAxisTangent());
   }
 
   if(state == 101){//Move Roll Axis State (M1,)
     roll.resetCommandTimeout();
-    IMUReader::update();
-    IMUReader::update();
-    pos_d = IMUReader::getZAxisTangent();
+    imu.update();
+    imu.update();
+    pos_d = imu.getZAxisTangent();
     pos_diff = pos_d*roll.SCALE_FACTOR - telnetServer.des_pos;
     roll.moveTicPosition(pos_diff);
     telnetServer.printClient("ACK");
   }
 
   if(state == 671){//Move X Axis State (M9,)
-    x_axis_linear.moveTicPosition(telnetServer.des_pos);
+    x_axis_linear.moveTicPositionLinear(telnetServer.des_pos);
     telnetServer.printClient("ACK");
   }
 

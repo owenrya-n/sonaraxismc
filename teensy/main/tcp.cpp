@@ -11,7 +11,7 @@ TelnetServer::TelnetServer() : server(23) {
 void TelnetServer::begin() {
     Ethernet.begin(mac, ip); 
     server.begin();
-    Serial.println("Status: Telnet Server Initialized"); 
+    Serial.println("STATUS: Telnet Server Initialized"); 
 }
 
 
@@ -94,6 +94,7 @@ int TelnetServer::parseClient(String message) {
                 return 000;
                 break;
         }
+        Serial.println(b);
         output = "set axis "+String(a)+" to position "+String(b);
     } 
     else if (message.startsWith("h")) {

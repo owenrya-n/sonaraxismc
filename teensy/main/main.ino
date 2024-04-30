@@ -42,9 +42,9 @@ void loop() {
   //set state and perform action
   statemx(state);
 
-  //refresh motion controllers
-  //x_axis_linear.resetCommandTimeout();
-  //roll.resetCommandTimeout();
+  //check limit switches for collision event
+  x_axis_linear.checkInterrupts();
+  roll.checkInterrupts();
 
 }
 

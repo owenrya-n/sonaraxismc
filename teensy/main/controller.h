@@ -18,6 +18,7 @@ public:
     void moveTicPositionLinear(int32_t delta);
     void stop();
     float SCALE_FACTOR = 0.55;
+    void checkInterrupts();
 
 private:
     // Member variables
@@ -25,6 +26,10 @@ private:
     TicSerial tic;
     int32_t rangeneg;
     int32_t rangepos;
+    const byte interrupt_x_1 = 10;
+    const byte interrupt_x_2 = 11;
+
+    
 };
 
 #endif // CONTROLLER_H

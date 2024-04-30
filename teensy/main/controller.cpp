@@ -8,6 +8,11 @@
 Controller::Controller(int aio1, int aio2) : ticSerial(aio1, aio2), tic(ticSerial, 14) {}
 
 void Controller::setup() {
+
+    //interrupt setup
+    pinMode(interrupt_x_1, INPUT_PULLUP);
+    pinMode(interrupt_x_2, INPUT_PULLUP);
+
     //Serial.begin(9600);
     ticSerial.begin(9600);
     delay(500);
@@ -96,4 +101,12 @@ void Controller::stop() {
     Serial.println("Emergency Stop Triggered");
     tic.setCurrentLimit(0);
     tic.deenergize();
+}
+
+void Controller::checkInterrupts(){
+    if((digitalRead(interrupt_x_1) == HIGH) || (digitalRead(interrupt_x_2) == HIGH)){
+        Serial.println("ERROR: Interrupt Triggered");
+        tic.setCurrentLimit(0);
+        tic.deenergize();
+    }
 }

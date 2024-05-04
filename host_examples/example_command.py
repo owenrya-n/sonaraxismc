@@ -18,16 +18,9 @@ print(tn.read_until(b";")) #read until line ending
 #same comments apply here as before 
 
 
-
 tn.write(b"M3,-10000;")
 tn.write(b"\n\r")
 print(tn.read_until(b";"))
-
-
-tn.write(b"M1,-10000;") #example of an invalid command
-tn.write(b"\n\r")
-print(tn.read_until(b";"))
-
 
 
 tn.close() #close the telnet connection

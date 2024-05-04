@@ -41,6 +41,7 @@ String TelnetServer::handleClient() {
     }
 
     return lastMessage;
+    Serial.println(lastMessage);
 }
 
 int TelnetServer::parseClient(String message) {
@@ -112,8 +113,9 @@ int TelnetServer::parseClient(String message) {
 void TelnetServer::printClient(String cmessage){
     //if (server.available()) {
     EthernetClient client = server.available();
-    Serial.println(cmessage);
-    client.println(cmessage);
+    String telmsg = cmessage + ";";
+    Serial.println(telmsg);
+    client.println(telmsg);
     //new_msg = cmessage;
 }
 

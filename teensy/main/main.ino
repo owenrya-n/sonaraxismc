@@ -10,6 +10,9 @@ int state = 0;
 float pos_diff = 0;
 float pos_d = 0;
 
+//Physical Constants
+float leadscrew_pitch = 1;
+
 //Instatniate motion axes
 Controller x_axis_linear(7,8);
 Controller roll(16,17);
@@ -76,21 +79,37 @@ void statemx(int state) {
   if(state == 001){//Roll Position Query State (?1)
     imu.update();
     imu.update();
-    telnetServer.printClient(imu.getZAxisTangent());
+    telnetServer.printClient(imu.getXAxisTangent());
+  }
+
+    if(state == 002){//Pitch Position Query State (?2)
+    imu.update();
+    imu.update();
+    telnetServer.printClient(imu.getYAxisTangent());
   }
 
   if(state == 101){//Move Roll Axis State (M1,)
     roll.resetCommandTimeout();
     imu.update();
     imu.update();
-    pos_d = imu.getZAxisTangent();
+    pos_d = imu.getXAxisTangent();
     pos_diff = pos_d*roll.SCALE_FACTOR - telnetServer.des_pos;
     roll.moveTicPosition(pos_diff);
     telnetServer.printClient("ACK");
   }
 
+  if(state == 102){//Move Roll Axis State (M1,)
+    pitch.resetCommandTimeout();
+    imu.update();
+    imu.update();
+    pos_d = imu.getYAxisTangent();
+    pos_diff = pos_d*roll.SCALE_FACTOR - telnetServer.des_pos;
+    pitch.moveTicPosition(pos_diff);
+    telnetServer.printClient("ACK");
+  }
+
   if(state == 671){//Move X Axis State (M9,)
-    x_axis_linear.moveTicPositionLinear(telnetServer.des_pos);
+    x_axis_linear.moveTicPositionLinear(telnetServer.des_pos*leadscrew_pitch);
     telnetServer.printClient("ACK");
   }
 

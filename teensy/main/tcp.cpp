@@ -54,6 +54,9 @@ int TelnetServer::parseClient(String message) {
             case 1:
                 return 001;
                 break;
+            case 2:
+                return 002;
+                break;
             default:
                 des_pos = 0;
                 return 000;
@@ -82,9 +85,13 @@ int TelnetServer::parseClient(String message) {
         int a = aString.toInt();
         int b = bString.toInt()*0.55;
         switch (a) {
-            case 0:
+            case 1:
                 des_pos = b;
                 return 101;
+                break;
+            case 2:
+                des_pos = b;
+                return 102;
                 break;
             case 3:
                 des_pos = b;

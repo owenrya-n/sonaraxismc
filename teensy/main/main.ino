@@ -3,6 +3,7 @@
 #include "tcp.h"
 #include "imureader.h"
 #include "controller.h"
+#include "encoder.h"
 
 //Control Variables
 String cmd = "";
@@ -16,13 +17,12 @@ float leadscrew_pitch = 1;
 //Instatniate motion axes
 Controller x_axis_linear(7,8);
 Controller roll(16,17);
+IMUReader imu;
+Encoder x_enc(2,3);
 
 //Instatntiate tcp
 TelnetServer telnetServer;
-IMUReader imu;
 void setup() {
-
-
 
   //Setup motion controllers
   x_axis_linear.setup();
@@ -33,6 +33,9 @@ void setup() {
 
   //Initialize IMU reader and I2C
   imu.begin(); 
+
+  //reset Encoder 0
+  x_enc.reset();
 
 
 }
@@ -86,6 +89,10 @@ void statemx(int state) {
     imu.update();
     imu.update();
     telnetServer.printClient(imu.getYAxisTangent());
+  }
+
+   if(state == 003){//Pitch Position Query State (?2)
+    telnetServer.printClient(x_enc.read());
   }
 
   if(state == 101){//Move Roll Axis State (M1,)

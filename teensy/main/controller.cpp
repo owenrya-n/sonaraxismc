@@ -12,7 +12,8 @@ void Controller::setup() {
     //interrupt setup
     pinMode(interrupt_x_1, INPUT_PULLUP);
     pinMode(interrupt_x_2, INPUT_PULLUP);
-
+    pinMode(interrupt_ang_1, INPUT_PULLUP);
+    pinMode(interrupt_ang_2, INPUT_PULLUP);
     //Serial.begin(9600);
     ticSerial.begin(9600);
     delay(500);
@@ -76,6 +77,7 @@ void Controller::ZeroTicPosition(int32_t zerodelta) {
         tic.setTargetPosition(tic.getCurrentPosition() + 1);
         rangepos++;
     }
+    
     Serial.print("Steps taken until pin 15 is high: ");
     Serial.println(rangepos);
 
@@ -89,6 +91,12 @@ void Controller::ZeroTicPosition(int32_t zerodelta) {
     Serial.println(rangeneg);
 }
 
+void Controller::ZeroTicPositionLinear(){
+    while (digitalRead(15) == LOW) {
+        tic.setTargetPosition(tic.getCurrentPosition() - 1);
+    }
+
+}
 void Controller::moveTicPositionLinear(int32_t delta) {
     tic.setCurrentLimit(1000);
     float pos = tic.getCurrentPosition();

@@ -1,9 +1,9 @@
 #include <NativeEthernet.h>
 #include <SPI.h>
+#include "Encoder_ctrl.h"
 #include "tcp.h"
 #include "imureader.h"
 #include "controller.h"
-#include "encoder.h"
 
 //Control Variables
 String cmd = "";
@@ -17,8 +17,9 @@ float leadscrew_pitch = 1;
 //Instatniate motion axes
 Controller x_axis_linear(7,8);
 Controller roll(16,17);
+Controller pitch(18,19);
 IMUReader imu;
-Encoder x_enc(2,3);
+Encoder_ctrl x_enc(2,3);
 
 //Instatntiate tcp
 TelnetServer telnetServer;
@@ -73,9 +74,27 @@ void statemx(int state) {
     roll.resetCommandTimeout();
     imu.update();
     imu.update();
-    pos_d = imu.getZAxisTangent();
+    pos_d = imu.getXAxisTangent();
     pos_diff = pos_d*roll.SCALE_FACTOR;
     roll.ZeroTicPosition(pos_diff);
+    telnetServer.printClient("ACK");
+  }
+
+  if(state == 502){//Pitch Calibration State (Z1)
+    pitch.resetCommandTimeout();
+    imu.update();
+    imu.update();
+    pos_d = imu.getYAxisTangent();
+    pos_diff = pos_d*roll.SCALE_FACTOR;
+    pitch.ZeroTicPosition(pos_diff);
+    telnetServer.printClient("ACK");
+  }
+
+  if(state == 503){//LINEAR CALIBRATION
+    x_axis_linear.resetCommandTimeout();
+    x_axis_linear.ZeroTicPositionLinear();
+    x_enc.reset();
+    x_axis_linear.moveTicPositionLinear(100);
     telnetServer.printClient("ACK");
   }
 
@@ -105,7 +124,7 @@ void statemx(int state) {
     telnetServer.printClient("ACK");
   }
 
-  if(state == 102){//Move Roll Axis State (M1,)
+  if(state == 102){//Move Pitch Axis State (M2,)
     pitch.resetCommandTimeout();
     imu.update();
     imu.update();
@@ -116,7 +135,9 @@ void statemx(int state) {
   }
 
   if(state == 671){//Move X Axis State (M9,)
-    x_axis_linear.moveTicPositionLinear(telnetServer.des_pos*leadscrew_pitch);
+    pos_d = x_enc.read();
+    pos_diff = pos_d - telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
+    x_axis_linear.moveTicPositionLinear(pos_diff);
     telnetServer.printClient("ACK");
   }
 

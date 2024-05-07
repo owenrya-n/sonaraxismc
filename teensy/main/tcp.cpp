@@ -74,6 +74,9 @@ int TelnetServer::parseClient(String message) {
             case 1:
                 return 501;
                 break;
+            case 2:
+                return 502;
+                break;
             default:
                 des_pos = 0;
                 return 000;

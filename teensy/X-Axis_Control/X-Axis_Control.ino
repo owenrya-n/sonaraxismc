@@ -4,7 +4,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define MAX_SPEED 100000000
+#define MAX_SPEED 5000000
 #define MAX_ACCEL 50000
 
 const int blink_led = LED_BUILTIN;
@@ -22,12 +22,13 @@ SoftwareSerial ticSerial2(tic1_RX, tic1_TX); // pin 7 = RX, pin 8 = TX
 TicSerial tic1(ticSerial2, 14); // Setting serial device number of a tic to 14
 
 const uint16_t currentLimitWhileStopped = 0;
-const uint16_t currentLimitWhileMoving = 1000; // 1000 mA
-
+const uint16_t currentLimitWhileMoving = 1500; // 1000 mA
+const float meters_per_step = 0.063*0.0254/200;
 
 String command = "";
 int speed = 0;
-int position = 0;
+long position = 0;
+float position_meters;
 bool new_command = true;
 volatile bool interrupt_1_enabled = false;
 volatile bool motor_resetting_from_interrupt_1 = false;
@@ -60,7 +61,7 @@ void setup() {
   tic1.setMaxSpeed(MAX_SPEED);
   tic1.setMaxAccel(MAX_ACCEL);
   tic1.setMaxDecel(MAX_ACCEL);
-  tic1.setStepMode(TicStepMode::Microstep4);
+  tic1.setStepMode(TicStepMode::Microstep1);
 
   Serial.println("Setup Complete!");
 }
@@ -216,8 +217,8 @@ void readNextCommand() {
   if (command == "forward" || command == "reverse") {
     Serial.println("Enter the speed (pulses/second)");
     while (Serial.available() == 0) {}
-    speed = Serial.readStringUntil('\n').toInt();
-    if (speed > MAX_SPEED/10000) {
+    speed = Serial.readStringUntil('\n').toFloat();
+    if (speed > MAX_SPEED/10000) { // Capping max speed
       speed = 10000;
       Serial.println("Max speed is: 10000");
     }
@@ -226,21 +227,22 @@ void readNextCommand() {
   } else if (command == "position") {
     Serial.println("Enter the position");
     while (Serial.available() == 0) {}
-    position = Serial.readStringUntil('\n').toInt();
-    Serial.println("Target position set to: " + String(position));
+    position_meters = Serial.readStringUntil('\n').toFloat();
+    position = position_meters / meters_per_step;
+    Serial.println("Target position set to: " + String(position_meters) + "m");
   } else if (command == "set position") {
     Serial.println("Enter the position");
     while (Serial.available() == 0) {}
-    position = Serial.readStringUntil('\n').toInt();
-    Serial.println("Moving to position: " + String(position));
+    position_meters = Serial.readStringUntil('\n').toFloat();
+    position = position_meters / meters_per_step;
+    tic1.haltAndSetPosition(position*-1);
+    x_axis_encoder.write(position*-1);
+    Serial.println("Motor and encoder position set to " + String(position_meters));
   } else if (command == "get position") {
-    Serial.println("Current position at: " + String(tic1.getCurrentPosition() * -1));
-    command = "";
-  } else if (command == "get encoder") {
-    Serial.println("Current position at: " + String(x_axis_encoder.read()*-1));
-    command = "";
-  } else if (command == "reset encoder") {
-    x_axis_encoder.write(0);
+    Serial.println("Motor position value: " + String(tic1.getCurrentPosition()*-1));
+    Serial.println("Encoder position value: " + String(x_axis_encoder.read()*-0.25));
+    Serial.println("Motor position: " + String(tic1.getCurrentPosition()*-1 * meters_per_step) + "m");
+    Serial.println("Encoder position: " + String(x_axis_encoder.read()*-0.25 * meters_per_step) + "m");
     command = "";
   }
   new_command = true;
@@ -252,7 +254,7 @@ void loop() {
   long new_x_position_encoder;
   new_x_position_encoder = x_axis_encoder.read();
   if (new_x_position_encoder != x_position_encoder) {    
-    Serial.println("Encoder position = " + String(new_x_position_encoder * -1));
+    // Serial.println("Encoder position = " + String(new_x_position_encoder * -1));
     x_position_encoder = new_x_position_encoder;
   }
   
@@ -276,7 +278,7 @@ void loop() {
       motor_resetting_from_interrupt_1 = true;
     } else if (debounce_counter_1 > 0) {
       tic1.setCurrentLimit(currentLimitWhileMoving);
-      tic1.setTargetVelocity(-1000*10000);
+      tic1.setTargetVelocity(-250*10000);
       motor_resetting_from_interrupt_1 = true;
     }
     debounce_counter_1++;
@@ -290,7 +292,7 @@ void loop() {
       motor_resetting_from_interrupt_2 = true;
     } else if (debounce_counter_2 > 0) {
       tic1.setCurrentLimit(currentLimitWhileMoving);
-      tic1.setTargetVelocity(1000*10000);
+      tic1.setTargetVelocity(250*10000);
       motor_resetting_from_interrupt_2 = true;
     }
     debounce_counter_2++;
@@ -304,7 +306,7 @@ void loop() {
       tic1.setTargetVelocity(0);
       delayWhileResettingCommandTimeout(1000);
       tic1.exitSafeStart(); // Need to clear safe start after Teensy waited too long for a command
-      delay(200); // Need 200ms to let the motor start up properly
+      // delay(200); // Need 200ms to let the motor start up properly
       new_command = false;
     }
 
@@ -323,18 +325,15 @@ void loop() {
     } else if (command == "position") {
       tic1.setCurrentLimit(currentLimitWhileMoving);
       tic1.setTargetPosition(position*-1); // Reset to position 0
-      Serial.println("Moving to position " + position);
+      Serial.println("Moving to position " + String(position_meters) + "m");
       if (tic1.getCurrentPosition() == position*-1) {
         Serial.println("Position reached!");
         command = ""; // Reset to idle mode
       }
-    } else if (command == "set position") {
-      tic1.haltAndSetPosition(position*-1);
-      Serial.println("Current position set to " + String(position));
     } else {
       // tic1.haltAndHold(); // Stops motor abruptly without deceleration. Could be used in other places.
       digitalWrite(blink_led, HIGH);
-      Serial.println("Motor not running");
+      // Serial.println("Motor not running");
       while (tic1.getCurrentVelocity() != 0) {
         tic1.setCurrentLimit(currentLimitWhileMoving);
         tic1.setTargetVelocity(0);
@@ -346,5 +345,5 @@ void loop() {
 
   uint32_t current_errors = tic1.getErrorsOccurred();
   showErrors(current_errors);
-  delay(500);
+  delay(250);
 }

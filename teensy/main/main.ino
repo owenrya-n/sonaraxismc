@@ -111,7 +111,7 @@ void statemx(int state) {
   }
 
    if(state == 003){//Pitch Position Query State (?2)
-    telnetServer.printClient(x_enc.read()*1/(leadscrew_pitch*.55));//need to fix
+    telnetServer.printClient(x_enc.read()*.1/(leadscrew_pitch*.5));//need to fix
   }
 
   if(state == 101){//Move Roll Axis State (M1,)
@@ -137,8 +137,8 @@ void statemx(int state) {
   if(state == 671){//Move X Axis State (M9,)
     //x_enc.reset(); //convert to angular
     pos_d = x_enc.read();
-    pos_diff = pos_d*.25*.55 + telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
-    x_axis_linear.moveTicPositionLinear(-pos_diff*4);//need to fix this
+    pos_diff = pos_d*.25*.5 - telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
+    x_axis_linear.moveTicPositionLinear(pos_diff*4*1.09);//need to fix this
     telnetServer.printClient("ACK");
     //Serial.println(telnetServer.des_pos*leadscrew_pitch);
   }

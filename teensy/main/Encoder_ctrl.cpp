@@ -9,5 +9,5 @@ void Encoder_ctrl::reset() {
 }
 
 float Encoder_ctrl::read() {  
-    return encoder_instance.read() * encoder_sf;
+    return encoder_instance.read() * -encoder_sf;
 }

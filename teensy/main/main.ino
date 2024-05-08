@@ -12,7 +12,7 @@ float pos_diff = 0;
 float pos_d = 0;
 
 //Physical Constants
-float leadscrew_pitch = 1;
+float leadscrew_pitch = 1/(0.063*0.0254/200);
 
 //Instatniate motion axes
 Controller x_axis_linear(7,8);
@@ -52,7 +52,7 @@ void loop() {
   //check limit switches for collision event
   x_axis_linear.checkInterrupts();
   roll.checkInterrupts();
-
+  //telnetServer.printClient("test");
 }
 
 // Main state machine
@@ -74,7 +74,7 @@ void statemx(int state) {
     roll.resetCommandTimeout();
     imu.update();
     imu.update();
-    pos_d = imu.getXAxisTangent();
+    pos_d = imu.getZAxisTangent();
     pos_diff = pos_d*roll.SCALE_FACTOR;
     roll.ZeroTicPosition(pos_diff);
     telnetServer.printClient("ACK");
@@ -101,7 +101,7 @@ void statemx(int state) {
   if(state == 001){//Roll Position Query State (?1)
     imu.update();
     imu.update();
-    telnetServer.printClient(imu.getXAxisTangent());
+    telnetServer.printClient(-imu.getZAxisTangent());
   }
 
     if(state == 002){//Pitch Position Query State (?2)
@@ -111,7 +111,7 @@ void statemx(int state) {
   }
 
    if(state == 003){//Pitch Position Query State (?2)
-    telnetServer.printClient(x_enc.read());
+    telnetServer.printClient(x_enc.read()*1/(leadscrew_pitch*.55));//need to fix
   }
 
   if(state == 101){//Move Roll Axis State (M1,)
@@ -135,10 +135,12 @@ void statemx(int state) {
   }
 
   if(state == 671){//Move X Axis State (M9,)
+    //x_enc.reset(); //convert to angular
     pos_d = x_enc.read();
-    pos_diff = pos_d - telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
-    x_axis_linear.moveTicPositionLinear(pos_diff);
+    pos_diff = pos_d*.25*.55 + telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
+    x_axis_linear.moveTicPositionLinear(-pos_diff*4);//need to fix this
     telnetServer.printClient("ACK");
+    //Serial.println(telnetServer.des_pos*leadscrew_pitch);
   }
 
   if(state == 888){//Electronic ESTOP

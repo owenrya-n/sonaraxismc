@@ -13,9 +13,9 @@ public:
     void resetCommandTimeout();
     void delayWhileResettingCommandTimeout(uint32_t ms);
     void waitForPosition(int32_t targetPosition);
-    void moveTicPosition(int32_t delta);
+    void moveTicPosition(float delta);
     void ZeroTicPosition(int32_t zerodelta);
-    void moveTicPositionLinear(int32_t delta);
+    void moveTicPositionLinear(float del);
     void stop();
     float SCALE_FACTOR = 0.55;
     void checkInterrupts();

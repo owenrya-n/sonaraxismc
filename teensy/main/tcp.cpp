@@ -89,7 +89,7 @@ int TelnetServer::parseClient(String message) {
         String aString = message.substring(1, commaIndex);
         String bString = message.substring(commaIndex + 1, closingParenIndex);
         int a = aString.toInt();
-        int b = bString.toInt()*0.55;
+        float b = bString.toFloat()*200/360;
         switch (a) {
             case 1:
                 des_pos = b;

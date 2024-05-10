@@ -5,7 +5,9 @@
 #define MAX_SPEED 10000000
 #define MAX_ACCEL 50000
 
-Controller::Controller(int aio1, int aio2) : ticSerial(aio1, aio2), tic(ticSerial, 14) {}
+Controller::Controller(int aio1, int aio2, TicStepMode stp) : ticSerial(aio1, aio2), tic(ticSerial, 14) {
+  step = stp;
+}
 
 void Controller::setup() {
 
@@ -27,7 +29,7 @@ void Controller::setup() {
     tic.setMaxSpeed(MAX_SPEED);
     tic.setMaxAccel(MAX_ACCEL);
     tic.setMaxDecel(MAX_ACCEL);
-    tic.setStepMode(TicStepMode::Half);
+    tic.setStepMode(step);//TicStepMode::Half
     if (tic.getEnergized()) {
       Serial.println("STATUS: A Motor Controller Initialized Successfully");
     } else {
@@ -97,11 +99,13 @@ void Controller::ZeroTicPositionLinear(){
     }
 
 }
+
+
 void Controller::moveTicPositionLinear(float del) {
     tic.setCurrentLimit(1000);
-    float pos = tic.getCurrentPosition();
-    float targetPos = pos + del;
-    tic.setTargetPosition(targetPos);
+    //float pos = tic.getCurrentPosition();
+    //float targetPos = pos + del;
+    tic.setTargetPosition(1*del);
     Serial.println(del + tic.getCurrentPosition());
     //delay(1000);
     //tic.resetCommandTimeout();
@@ -119,4 +123,55 @@ void Controller::checkInterrupts(){
         tic.setCurrentLimit(0);
         tic.deenergize();
     }
+}
+
+void Controller::refreshTicPosition(float position){
+  //add try catch
+  tic.haltAndSetPosition(position);
+  Serial.println("Tic Position Synced to Encoder");
+}
+
+void showErrors(uint32_t errors) {
+  if (errors & (1 << (uint8_t)TicError::IntentionallyDeenergized)) {
+    Serial.println("Error: Intentionally Deenergized");
+  }
+  if (errors & (1 << (uint8_t)TicError::MotorDriverError)) {
+    Serial.println("Error: Motor Driver Error");
+  }
+  if (errors & (1 << (uint8_t)TicError::LowVin)) {
+    Serial.println("Error: Low Vin");
+  }
+  if (errors & (1 << (uint8_t)TicError::KillSwitch)) {
+    Serial.println("Error: Kill Switch");
+  }
+  if (errors & (1 << (uint8_t)TicError::RequiredInputInvalid)) {
+    Serial.println("Error: Required Input Invalid");
+  }
+  if (errors & (1 << (uint8_t)TicError::SerialError)) {
+    Serial.println("Error: Serial Error");
+  }
+  if (errors & (1 << (uint8_t)TicError::CommandTimeout)) {
+    Serial.println("Error: Command Timeout");
+  }
+  if (errors & (1 << (uint8_t)TicError::SafeStartViolation)) {
+    Serial.println("Error: Safe Start Violation");
+  }
+  if (errors & (1 << (uint8_t)TicError::ErrLineHigh)) {
+    Serial.println("Error: Error Line High");
+  }
+  if (errors & (1 << (uint8_t)TicError::SerialFraming)) {
+    Serial.println("Error: Serial Framing");
+  }
+  if (errors & (1 << (uint8_t)TicError::RxOverrun)) {
+    Serial.println("Error: Rx Overrun");
+  }
+  if (errors & (1 << (uint8_t)TicError::Format)) {
+    Serial.println("Error: Format");
+  }
+  if (errors & (1 << (uint8_t)TicError::Crc)) {
+    Serial.println("Error: CRC");
+  }
+  if (errors & (1 << (uint8_t)TicError::EncoderSkip)) {
+    Serial.println("Error: Encoder Skip");
+  }
 }

@@ -10,14 +10,18 @@ String cmd = "";
 int state = 0;
 float pos_diff = 0;
 float pos_d = 0;
+float pos_meter = 0;
+float pos_step = 0;
+float enc_meter = 0;
+float enc_step = 0;
 
 //Physical Constants
-float leadscrew_pitch = 1/(0.063*0.0254/200);
+float leadscrew_pitch = 1/(0.063*0.0254/800); //steps per meter
 
 //Instatniate motion axes
-Controller x_axis_linear(7,8);
-Controller roll(16,17);
-Controller pitch(18,19);
+Controller x_axis_linear(7,8,TicStepMode::Microstep4);
+Controller roll(16,17,TicStepMode::Half);
+Controller pitch(18,19,TicStepMode::Half);
 IMUReader imu;
 Encoder_ctrl x_enc(2,3);
 
@@ -111,7 +115,9 @@ void statemx(int state) {
   }
 
    if(state == 003){//Pitch Position Query State (?2)
-    telnetServer.printClient(x_enc.read()*.1/(leadscrew_pitch*.5));//need to fix
+    enc_step = x_enc.read();
+    enc_meter = enc_step/leadscrew_pitch;
+    telnetServer.printClient(enc_meter);//need to fix
   }
 
   if(state == 101){//Move Roll Axis State (M1,)
@@ -135,10 +141,16 @@ void statemx(int state) {
   }
 
   if(state == 671){//Move X Axis State (M9,)
-    //x_enc.reset(); //convert to angular
+    /*if we want to change tic pos to encoder
     pos_d = x_enc.read();
-    pos_diff = pos_d*.25*.5 - telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
-    x_axis_linear.moveTicPositionLinear(pos_diff*4*1.09);//need to fix this
+    x_axis_linear.refreshTicPosition(pos_d)
+    */
+
+
+    //pos_diff = pos_d*.25*.5 - telnetServer.des_pos*leadscrew_pitch; //this should be the difference in degrees
+    pos_meter = telnetServer.des_pos;
+    pos_step = pos_meter * leadscrew_pitch;
+    x_axis_linear.moveTicPositionLinear(pos_step);//need to fix this
     telnetServer.printClient("ACK");
     //Serial.println(telnetServer.des_pos*leadscrew_pitch);
   }

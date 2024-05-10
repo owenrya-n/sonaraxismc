@@ -7,7 +7,7 @@
 class Controller {
 public:
     // Constructor
-    Controller(int aio1, int aio2);
+    Controller(int aio1, int aio2, TicStepMode stp);
     // Member functions
     void setup();
     void resetCommandTimeout();
@@ -20,6 +20,9 @@ public:
     float SCALE_FACTOR = 0.55;
     void checkInterrupts();
     void ZeroTicPositionLinear();
+    void showErrors(uint32_t errors);
+    void refreshTicPosition(float position);
+    TicStepMode step;
 
 private:
     // Member variables

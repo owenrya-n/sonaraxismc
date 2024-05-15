@@ -6,7 +6,7 @@ ICM_20948_I2C myICM;
 float xAxisTangent = 0.0;
 float yAxisTangent = 0.0;
 float zAxisTangent = 0.0;
-int count = 1; //200000;
+int count = 10; //200000;
 
 void IMUReader::begin() {
   Wire1.begin();
@@ -29,12 +29,14 @@ void IMUReader::begin() {
 void IMUReader::update() {
   if (myICM.dataReady()) {
     myICM.getAGMT();
-    delay(30);
+    delay(10);
     float sumXAxis = 0.0;
     float sumYAxis = 0.0;
     float sumZAxis = 0.0;
 
     for (int i = 0; i < count; i++) {
+      myICM.getAGMT();
+      delay(30);
       sumXAxis += atan2(myICM.accX(), myICM.accY()) * 180 / M_PI; 
       sumYAxis += atan2(myICM.accX(), myICM.accZ()) * 180 / M_PI;
       sumZAxis += atan2(myICM.accY(), myICM.accZ()) * 180 / M_PI;

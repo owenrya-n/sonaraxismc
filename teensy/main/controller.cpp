@@ -2,7 +2,7 @@
 #include <Tic.h>
 #include <SoftwareSerial.h>
 
-#define MAX_SPEED 10000000
+#define MAX_SPEED 5000000
 #define MAX_ACCEL 50000
 
 Controller::Controller(int aio1, int aio2, TicStepMode stp) : ticSerial(aio1, aio2), tic(ticSerial, 14) {
@@ -52,6 +52,12 @@ void Controller::waitForPosition(int32_t targetPosition) {
     do {
         resetCommandTimeout();
     } while (tic.getCurrentPosition() != targetPosition);
+}
+
+float Controller::returnPosition() {
+    return tic.getCurrentPosition();
+    Serial.println(-1*tic.getCurrentPosition());
+    Serial.print(tic.getPositionUncertain());
 }
 
 void Controller::moveTicPosition(float delta) {
@@ -105,7 +111,7 @@ void Controller::moveTicPositionLinear(float del) {
     tic.setCurrentLimit(1000);
     //float pos = tic.getCurrentPosition();
     //float targetPos = pos + del;
-    tic.setTargetPosition(1*del);
+    tic.setTargetPosition(del);
     Serial.println(del + tic.getCurrentPosition());
     //delay(1000);
     //tic.resetCommandTimeout();

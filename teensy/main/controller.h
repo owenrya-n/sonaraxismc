@@ -22,6 +22,7 @@ public:
     void ZeroTicPositionLinear();
     void showErrors(uint32_t errors);
     void refreshTicPosition(float position);
+    float returnPosition();
     TicStepMode step;
 
 private:
